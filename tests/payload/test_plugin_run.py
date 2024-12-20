@@ -14,7 +14,7 @@ from selenium.webdriver.ie.webdriver import WebDriver
 
 from tests.config.fixtures import fix_plugin_config, project_config
 # from tests.payload.fixtures import execute_timeout
-from s3p_sdk.types import S3PRefer, S3PDocument, S3PPlugin
+from s3p_sdk.types import S3PRefer, S3PDocument, S3PPlugin, S3PPluginRestrictions
 from s3p_sdk.plugin.types import SOURCE
 
 
@@ -44,7 +44,7 @@ class TestPayloadRun:
 
     @pytest.fixture(scope="module", autouse=True)
     def fix_payload(self, project_config, fix_plugin_config) -> Type[S3PParserBase]:
-        MODULE_NAME: str = 's3p_plugin_parser_techcrunch'
+        MODULE_NAME: str = 's3p_test_plugin_payload'
         """Загружает конфигурацию из config.py файла по динамическому пути на основании конфигурации"""
         payload_path = Path(project_config.root) / 'src' / project_config.name / fix_plugin_config.payload.file
         assert os.path.exists(payload_path)
@@ -60,12 +60,12 @@ class TestPayloadRun:
         assert issubclass(parser_class, S3PParserBase), f"{class_name} is not a subclass of S3PParserBase."
         return parser_class
 
-    def run_payload(self, payload: Type[S3PParserBase], _plugin: S3PPlugin, driver: WebDriver, refer: S3PRefer, max_document: int,
+    def run_payload(self, payload: Type[S3PParserBase], _plugin: S3PPlugin, driver: WebDriver, refer: S3PRefer, restrictions: S3PPluginRestrictions,
                     timeout: int = 2):
         # !WARNING Требуется изменить путь до актуального парсера плагина
         from src.s3p_plugin_parser_techcrunch.techcrunch import Techcrunch
         if isinstance(payload, type(Techcrunch)):
-            _payload = payload(refer=refer, plugin=_plugin, web_driver=driver, max_count_documents=max_document, last_document=None)
+            _payload = payload(refer=refer, plugin=_plugin, web_driver=driver, restrictions=restrictions)
 
             # @execute_timeout(timeout)
             def execute() -> tuple[S3PDocument, ...]:
@@ -88,7 +88,7 @@ class TestPayloadRun:
 
         """
         max_docs = 4
-        docs = self.run_payload(fix_payload, fix_s3pPlugin, chrome_driver, fix_s3pRefer, max_docs, 100)
+        docs = self.run_payload(fix_payload, fix_s3pPlugin, chrome_driver, fix_s3pRefer, S3PPluginRestrictions(max_docs, None, None, None), 100)
 
         # 1. Количество материалов должно быть не меньше параметра максимального числа материалов.
         assert len(docs) == max_docs, f"Payload вернул {len(docs)} материалов. А должен был {max_docs}"
