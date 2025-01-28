@@ -39,7 +39,7 @@ class Techcrunch(S3PParserBase):
         # ========================================
         # Тут должен находится блок кода, отвечающий за парсинг конкретного источника
         # -
-        self._initial_access_source("https://techcrunch.com/category/fintech/")
+        self._initial_access_source(self.HOST)
         self._wait.until(ec.presence_of_element_located((By.XPATH, "//*[contains(@class,'loop-card__content')]")))
         time.sleep(3)
         while True:
@@ -72,8 +72,7 @@ class Techcrunch(S3PParserBase):
 
                 self._driver.execute_script("window.open('');")
                 self._driver.switch_to.window(self._driver.window_handles[1])
-                self._driver.get(web_link)
-                time.sleep(3)
+                self._initial_access_source(web_link)
 
                 try:
                     abstract = self._driver.find_element(By.ID, 'speakable-summary').text
@@ -85,6 +84,7 @@ class Techcrunch(S3PParserBase):
                     pub_date = dateparser.parse(self._driver.find_element(By.XPATH,
                                                                           "//div[contains(@class,'wp-block-post-date')]/time").get_attribute(
                         'datetime'))
+                    pub_date.replate(tzinfo=None)
                 except:
                     self.logger.exception('Не удалось извлечь pub_date')
                     continue
@@ -131,17 +131,17 @@ class Techcrunch(S3PParserBase):
         self._driver.get(url)
         self.logger.debug('Entered on web page ' + url)
         time.sleep(delay)
-        # self._agree_cookie_pass()
+        self._agree_cookie_pass()
 
     def _agree_cookie_pass(self):
         """
         Метод прожимает кнопку agree на модальном окне
         """
-        cookie_agree_xpath = '//*[@id="onetrust-accept-btn-handler"]'
+        cookie_agree_id = 'didomi-notice-agree-button'
 
         try:
-            cookie_button = self._driver.find_element(By.XPATH, cookie_agree_xpath)
-            if WebDriverWait(self._driver, 5).until(ec.element_to_be_clickable(cookie_button)):
+            cookie_button = self._driver.find_element(By.XPATH, cookie_agree_id)
+            if WebDriverWait(self._driver, 2).until(ec.element_to_be_clickable(cookie_button)):
                 cookie_button.click()
                 self.logger.debug(F"Parser pass cookie modal on page: {self._driver.current_url}")
         except NoSuchElementException as e:
