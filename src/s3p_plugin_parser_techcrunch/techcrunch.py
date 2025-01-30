@@ -45,14 +45,18 @@ class Techcrunch(S3PParserBase):
                 raise S3PPluginParserFinish(plugin=self._plugin, message='link can\'t open', errors=e)
 
             for post in self._page_links(page_link):
-                doc = self._document_from_page(post)
                 try:
-                    self._find(doc)
-                except S3PPluginParserOutOfRestrictionException as e:
-                    if e.restriction == FROM_DATE:
-                        self.logger.debug(f'Document is out of date range `{self._restriction.from_date}`')
-                        raise S3PPluginParserFinish(self._plugin,
-                                                    f'Document is out of date range `{self._restriction.from_date}`', e)
+                    doc = self._document_from_page(post)
+                except Exception as e:
+                    self.logger.error(e)
+                else:
+                    try:
+                        self._find(doc)
+                    except S3PPluginParserOutOfRestrictionException as e:
+                        if e.restriction == FROM_DATE:
+                            self.logger.debug(f'Document is out of date range `{self._restriction.from_date}`')
+                            raise S3PPluginParserFinish(self._plugin,
+                                                        f'Document is out of date range `{self._restriction.from_date}`', e)
 
     def _document_from_page(self, url: str) -> S3PDocument:
         self._initial_access_source(url)
