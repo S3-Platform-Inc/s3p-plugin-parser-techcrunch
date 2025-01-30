@@ -100,7 +100,7 @@ class TestPayloadRun:
 
     @pytest.mark.timeout(100)
     def test_date_restrictions(self, chrome_driver, fix_s3pRefer, fix_payload, fix_s3pPlugin):
-        _boundary_date = datetime.datetime.now() - datetime.timedelta(days=5)
+        _boundary_date = datetime.datetime.now() - datetime.timedelta(days=2)
         docs = self.run_payload(fix_payload, fix_s3pRefer, fix_s3pPlugin, S3PPluginRestrictions(None, None, _boundary_date, None), chrome_driver)
 
         for doc in docs:

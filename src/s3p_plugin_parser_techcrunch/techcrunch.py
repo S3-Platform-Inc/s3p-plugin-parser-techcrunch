@@ -113,7 +113,7 @@ class Techcrunch(S3PParserBase):
         )
 
     def _infinity_page_links(self) -> Iterator[str]:
-        template = self.HOST + 'page/{page_number}/?guccounter=1'
+        template = self.HOST + 'page/{page_number}/'
 
         page_number = 1
         while True:
